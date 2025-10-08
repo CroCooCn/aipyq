@@ -1,0 +1,27 @@
+﻿# Node
+node_modules/
+web/.next/
+web/out/
+
+# Java/Maven
+server/target/
+*.iml
+*.class
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env/Secrets
+.env
+*.pem
+server/certs/
+

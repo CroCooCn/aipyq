@@ -1,0 +1,25 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: friend-app-server
+
+ai:
+  provider: volc
+  volc-base-url: https://ark.cn-beijing.volces.com/api/v3
+  volc-api-key: c24dbb61-96a4-40e2-ae4a-3eaf693caef6
+  volc-text-endpoint: /chat/completions
+  volc-vision-endpoint: /chat/completions
+  volc-image-edit-endpoint: /images/generations
+  volc-text-model: ep-20250823151955-xck44
+  volc-vision-model: ep-20250823151955-xck44
+  volc-image-edit-model: ep-20250912155117-7d7cw
+
+quota:
+  visitor-daily-credits: 80   # 游客免费额度（已加大）
+  monthly-credits: 5000       # 月订阅额度
+  cost-generate: 1
+  cost-render: 1
