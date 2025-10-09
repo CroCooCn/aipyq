@@ -18,7 +18,6 @@ public class InMemoryStore {
     public static InMemoryStore get() { return INSTANCE; }
 
     private final List<Generation> generations = new CopyOnWriteArrayList<>();
-    private final Set<String> favorites = Collections.synchronizedSet(new HashSet<>());
     private final ObjectMapper mapper = new ObjectMapper();
     private final Path dataFile;
 
@@ -55,25 +54,10 @@ public class InMemoryStore {
         return resp;
     }
 
-    public synchronized Map<String, Object> pageFavorites(int page, int size) {
-        List<Generation> favs = generations.stream().filter(g -> favorites.contains(g.getId())).collect(Collectors.toList());
-        int from = Math.max(0, (page - 1) * size);
-        int to = Math.min(favs.size(), from + size);
-        List<Generation> items = from >= to ? List.of() : favs.subList(from, to);
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("items", items.stream().map(this::toMap).collect(Collectors.toList()));
-        resp.put("total", favs.size());
-        return resp;
-    }
-
-    public synchronized void setFavorite(String id, boolean fav) {
-        if (fav) favorites.add(id); else favorites.remove(id);
-        save();
-    }
 
     public synchronized boolean deleteGeneration(String id) {
         boolean removed = generations.removeIf(g -> Objects.equals(g.getId(), id));
-        favorites.remove(id);
+        // favorites removed
         if (removed) save();
         return removed;
     }
@@ -84,7 +68,7 @@ public class InMemoryStore {
         m.put("imageId", g.getImageId());
         m.put("selectedCopy", g.getSelectedCopy());
         m.put("createdAt", g.getCreatedAt());
-        m.put("favorite", favorites.contains(g.getId()));
+        // favorites removed
         return m;
     }
 
@@ -93,7 +77,6 @@ public class InMemoryStore {
         try {
             ObjectNode root = (ObjectNode) mapper.readTree(Files.readAllBytes(dataFile));
             generations.clear();
-            favorites.clear();
             if (root.has("generations") && root.get("generations").isArray()) {
                 for (var it : root.get("generations")) {
                     Generation g = new Generation();
@@ -105,11 +88,7 @@ public class InMemoryStore {
                     generations.add(g);
                 }
             }
-            if (root.has("favorites") && root.get("favorites").isArray()) {
-                for (var it : root.get("favorites")) {
-                    favorites.add(it.asText());
-                }
-            }
+            // favorites removed
         } catch (Exception ignored) {}
     }
 
@@ -126,8 +105,7 @@ public class InMemoryStore {
                         return n;
                     }).collect(Collectors.toList())
             );
-            var favArr = root.putArray("favorites");
-            for (String id : favorites) favArr.add(id);
+            // favorites removed
             Files.writeString(dataFile, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root));
         } catch (IOException ignored) {}
     }
