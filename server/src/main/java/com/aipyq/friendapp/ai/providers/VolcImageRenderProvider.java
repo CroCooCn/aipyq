@@ -60,38 +60,22 @@ public class VolcImageRenderProvider implements ImageRenderProvider {
     }
 
     private String buildInstruction(RenderRequest req) {
-        String copy = req.getCopyText() == null ? "" : req.getCopyText();
-        String color = or(req.getPrimaryColor(), "#111111");
-        String font = or(req.getFontFamily(), "system-ui");
         String ratio = or(req.getRatio(), "1:1");
         String resolution = or(req.getResolution(), "1080x1080");
-        int fontSize = req.getFontSize() != null ? req.getFontSize().intValue() : 36;
-        double lineHeight = req.getLineHeight() != null ? req.getLineHeight() : 1.4;
-        int margin = req.getMargin() != null ? req.getMargin().intValue() : 24;
-        boolean grid = req.getGrid() != null && Boolean.TRUE.equals(req.getGrid().getEnabled());
         boolean watermark = req.getWatermarkOn() != null && req.getWatermarkOn();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("任务：在给定图片上，排版并叠加以下中文文案，用于发布微信朋友圈。\n");
-        sb.append("文案：\n").append(escapeForPrompt(copy)).append("\n\n");
-
+        sb.append("任务：将给定图片优化为更适合发布到微信朋友圈的风格，不叠加任何文字。\n");
         sb.append("要求：\n");
-        sb.append("1) 不裁切主体，优先保留原图构图；输出分辨率为 ").append(resolution).append("，画面比例 ").append(ratio).append("。\n");
-        sb.append("2) 自动选择不遮挡主体的空白区域放置文字；若对比度不足，添加半透明深色文字背景条（圆角），保证可读性。\n");
-        sb.append("3) 字体：").append(font).append("，字号约 ").append(fontSize).append("px（随分辨率等比），行距 ").append(lineHeight).append(" 倍，颜色 ").append(color).append("；确保与背景对比度 ≥ 4.5:1，必要时自动反色或加描边。\n");
-        sb.append("4) 段落优化：按中文阅读习惯自动换行，避免过长一行；保留表情与标点；不新增无关口号。\n");
-        sb.append("5) 页面安全边距：四周预留 ≥ ").append(margin).append("px，避免贴边。\n");
-        sb.append("6) 仅使用提供的文案内容，不额外添加文字或水印；");
+        sb.append("1) 画面比例 ").append(ratio).append("，输出分辨率 ").append(resolution).append("；尽量不裁掉关键主体。\n");
+        sb.append("2) 色彩与光影：提升整体亮度/对比度与通透度，适度强调主体；可轻微调整白平衡与饱和度，让画面更有质感。\n");
+        sb.append("3) 氛围：可添加自然、轻度的胶片/质感滤镜，避免过度锐化和过重特效；可以轻微暗角以聚焦主体。\n");
+        sb.append("4) 降噪与细节：适度去噪与修复压缩痕迹，保持皮肤与材质自然。\n");
+        sb.append("5) 不添加任何新元素或文字，不改变原有语义。\n");
         if (watermark) {
-            sb.append("另外在右下角添加极小号半透明水印（10% 不透明度），不影响主体与文案阅读；");
+            sb.append("6) 在右下角添加极小号半透明水印（10% 不透明度），不干扰主体。\n");
         }
-        sb.append("保持整体干净、现代、可读。\n");
-
-        if (grid) {
-            sb.append("7) 额外输出九宫格版本（3x3）用于朋友圈，确保主体不被分割，按左到右、上到下顺序返回9张切片。\n");
-        }
-
-        sb.append("输出：返回编辑后的图片URL（或Base64）数组；若包含九宫格，请先返回完整图，再返回九宫格9张。\n");
+        sb.append("输出：返回优化后的图片URL（或Base64）。\n");
         return sb.toString();
     }
 

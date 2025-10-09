@@ -1,5 +1,6 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { apiFetch, apiBase, getClientId } from '../../lib/clientId';
 
 export default function UploadPage() {
   const [imageUrl, setImageUrl] = useState('');
@@ -8,18 +9,42 @@ export default function UploadPage() {
   const [selectedCopy, setSelectedCopy] = useState<string>('');
   const [rendering, setRendering] = useState<boolean>(false);
   const [renderResult, setRenderResult] = useState<any>(null);
+  const [insightSummary, setInsightSummary] = useState<string>('');
+  const [quota, setQuota] = useState<any>(null);
 
-  const apiBase =  'http://localhost:8080/api/v1';
+  const base = apiBase();
+
+  useEffect(() => {
+    getClientId();
+    refreshQuota();
+  }, []);
+
+  const refreshQuota = async () => {
+    const resp = await apiFetch('/quota');
+    if (resp.ok) setQuota(await resp.json());
+  };
 
   const doCaption = async () => {
-    const resp = await fetch(`${apiBase}/generate/caption`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl, ocr: true }) });
-    setInsights(await resp.json());
+    const resp = await apiFetch('/generate/caption', { method: 'POST', body: JSON.stringify({ imageUrl, ocr: false }) });
+    const data = await resp.json();
+    setInsights(data);
+    setInsightSummary(data.summary || '');
   };
 
   const doCopy = async () => {
     const payload = { imageTags: insights?.labels || [], ocrText: insights?.ocrText || '', imageUrl, audienceTags: [], hotTopicsOn: true, stylePreset: 'lively' };
-    const resp = await fetch(`${apiBase}/generate/copy`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const resp = await apiFetch('/generate/copy', { method: 'POST', body: JSON.stringify(payload) });
+    if (resp.status === 402) { alert('额度不足，请明日再试或开通订阅'); return; }
     setCopies(await resp.json());
+    refreshQuota();
+  };
+
+  const favoriteCopy = async () => {
+    if (!selectedCopy) { alert('请先选择一条文案'); return; }
+    const resp = await apiFetch('/history', { method: 'POST', body: JSON.stringify({ copyText: selectedCopy, imageUrl }) });
+    if (resp.ok) {
+      alert('已收藏选中文案');
+    }
   };
 
   const doRender = async () => {
@@ -41,8 +66,10 @@ export default function UploadPage() {
         imageUrl,
         copyText: selectedCopy
       };
-      const resp = await fetch(`${apiBase}/image/render`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const resp = await apiFetch('/image/render', { method: 'POST', body: JSON.stringify(payload) });
+      if (resp.status === 402) { alert('额度不足，请明日再试或开通订阅'); return; }
       setRenderResult(await resp.json());
+      refreshQuota();
     } finally {
       setRendering(false);
     }
@@ -51,13 +78,19 @@ export default function UploadPage() {
   return (
     <div>
       <h2>上传/解析</h2>
+      {quota && (
+        <div style={{ marginBottom: 8, padding: 8, background: '#fafafa', border: '1px solid #eee' }}>
+          <div>游客今日剩余额度：{quota.visitorRemainingToday}</div>
+          <div>订阅剩余总额度：{quota.remainingCredits} {quota.subscribed ? `(到期 ${quota.expiresAt ? new Date(quota.expiresAt).toLocaleDateString() : ''})` : ''}</div>
+        </div>
+      )}
       <input placeholder="图片URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} style={{ width: '60%' }} />
       <button onClick={doCaption} style={{ marginLeft: 8 }}>解析图片</button>
 
       {insights && (
         <div style={{ marginTop: 16 }}>
+          <div>图片内容：{insightSummary}</div>
           <div>标签: {insights.labels?.join(', ')}</div>
-          <div>OCR: {insights.ocrText}</div>
           <button onClick={doCopy} style={{ marginTop: 8 }}>生成文案</button>
         </div>
       )}
@@ -78,6 +111,7 @@ export default function UploadPage() {
           <div style={{ marginTop: 8 }}>
             <button disabled={!selectedCopy || rendering} onClick={doRender}>渲染成图</button>
             <button style={{ marginLeft: 8 }} disabled={!selectedCopy} onClick={() => navigator.clipboard.writeText(selectedCopy)}>复制文案</button>
+            <button style={{ marginLeft: 8 }} disabled={!selectedCopy} onClick={favoriteCopy}>收藏文案</button>
           </div>
         </div>
       )}
@@ -93,6 +127,13 @@ export default function UploadPage() {
               </div>
             </div>
           ))}
+          <div>
+            <button onClick={async () => {
+              if (!renderResult?.generationId) return;
+              await apiFetch('/favorites', { method: 'POST', body: JSON.stringify({ generationId: renderResult.generationId, favorite: true }) });
+              alert('已收藏');
+            }}>收藏</button>
+          </div>
         </div>
       )}
     </div>

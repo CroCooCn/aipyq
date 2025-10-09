@@ -44,6 +44,7 @@ public class ImageController {
         g.setSelectedCopy(request.getCopyText());
         g.setCreatedAt(OffsetDateTime.now());
         InMemoryStore.get().addGeneration(g);
+        r.setGenerationId(g.getId());
 
         analytics.track(client, "image.rendered", java.util.Map.of("count", r.getImages() != null ? r.getImages().size() : 0));
         return ResponseEntity.ok(r);

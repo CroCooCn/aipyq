@@ -1,4 +1,4 @@
-package com.aipyq.friendapp.ai.providers;
+﻿package com.aipyq.friendapp.ai.providers;
 
 import com.aipyq.friendapp.ai.LLMProvider;
 import com.aipyq.friendapp.api.dto.CopyCandidates;
@@ -109,8 +109,11 @@ public class VolcLlmProvider implements LLMProvider {
             String resp = client.postJson(textEndpoint, mapper.writeValueAsString(body));
             JsonNode node = mapper.readTree(resp);
             String out = extractFirstText(node);
-            if (out != null && !out.isBlank()) return out;
-        } catch (Exception ignored) {}
+            if (out != null && !out.isBlank()) {
+                return out;
+            }
+        } catch (Exception ignored) {
+        }
         return text;
     }
 
@@ -118,7 +121,7 @@ public class VolcLlmProvider implements LLMProvider {
         String tone = req.getPersona() != null ? nz(req.getPersona().getTone()) : "";
         String role = req.getPersona() != null ? nz(req.getPersona().getRole()) : "";
         String audience = req.getAudienceTags() != null ? String.join("/", req.getAudienceTags()) : "";
-        return "你是中文社交文案创作者。基于图片与要素，生成3-5条朋友圈文案，30-120字，适当使用emoji，风格" + tone + "，身份" + role + "，面向" + audience + "。输出纯文本。";
+        return "你是中文社交文案创作者。基于图片与要素，生成3-5条朋友圈文案，每条80-120字，适当使用emoji，风格" + tone + "，身份" + role + "，面向" + audience + "。输出纯文本。";
     }
 
     private CopyCandidates parseCopy(String resp) throws Exception {
@@ -126,13 +129,11 @@ public class VolcLlmProvider implements LLMProvider {
         String text = extractFirstText(node);
         List<CopyCandidates.Item> items = new ArrayList<>();
         if (text != null && !text.isBlank()) {
-            String[] lines = text.split("\n");
-            for (String l : lines) {
-                String s = l.trim();
-                if (s.isEmpty()) continue;
+            List<String> parsed = parseCandidateText(text);
+            for (String s : parsed) {
                 CopyCandidates.Item it = new CopyCandidates.Item();
                 it.setId(UUID.randomUUID().toString());
-                it.setText(s.replaceFirst("^[-•\\d.]+\\s*", ""));
+                it.setText(s);
                 items.add(it);
             }
         }
@@ -146,7 +147,6 @@ public class VolcLlmProvider implements LLMProvider {
         if (node == null) return null;
         JsonNode txt = node.at("/output/text");
         if (txt.isTextual()) return txt.asText();
-        // root choices
         JsonNode rootChoices = node.path("choices");
         if (rootChoices.isArray() && rootChoices.size() > 0) {
             JsonNode msg = rootChoices.get(0).path("message");
@@ -185,4 +185,41 @@ public class VolcLlmProvider implements LLMProvider {
     }
 
     private static String nz(String s) { return s == null ? "" : s; }
+
+    private static List<String> parseCandidateText(String raw) {
+        String normalized = raw.replace("\r", "");
+        normalized = normalized.replace("`", "");
+        String[] blocks = normalized.split("\\n\\s*\\n");
+        List<String> result = new ArrayList<>();
+        for (String block : blocks) {
+            String cleaned = cleanLeadingMarkers(block.trim());
+            cleaned = cleaned.replaceAll("\\n+", " ");
+            cleaned = cleaned.replaceAll("\\s+", " ").trim();
+            if (cleaned.length() < 6) continue;
+            result.add(cleaned);
+        }
+        if (result.isEmpty()) {
+            for (String line : normalized.split("\\n")) {
+                String cleaned = cleanLeadingMarkers(line.trim());
+                if (cleaned.length() < 6) continue;
+                result.add(cleaned);
+            }
+        }
+        List<String> dedup = new ArrayList<>();
+        for (String s : result) {
+            if (!dedup.contains(s)) dedup.add(s);
+        }
+        return dedup;
+    }
+
+    private static String cleanLeadingMarkers(String text) {
+        String s = text;
+        s = s.replaceAll("^#+\\s*", "");
+        s = s.replaceAll("^[-*\\u2022]+\\s*", "");
+        s = s.replaceAll("^(\\u6587\\u6848|\\u5185\\u5BB9|\\u65B9\\u6848|\\u9009\\u9879|\\u63A8\\u8350|\\u6807\\u9898|copy|Copy|COPY|\\u6BB5\\u843D|\\u6848\\u4F8B)[\\s:\\uFF1A-]*", "");
+        s = s.replaceAll("^(\\u6587\\u6848)?[\\u4E00-\\u4E5D\\u5341\\d][\\s:\\uFF1A\\u3001.\\-]*", "");
+        s = s.replaceAll("^(\\d+\\.|\\d+\\u3001|\\d+\\uFF1A)\\s*", "");
+        s = s.replaceAll("^[A-Za-z]\\)\\s*", "");
+        return s.trim();
+    }
 }

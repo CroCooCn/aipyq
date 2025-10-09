@@ -4,6 +4,7 @@ import com.aipyq.friendapp.api.dto.*;
 import com.aipyq.friendapp.service.GenerateService;
 import com.aipyq.friendapp.service.QuotaService;
 import com.aipyq.friendapp.service.AnalyticsService;
+import com.aipyq.friendapp.service.VisionService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,19 +18,21 @@ public class GenerateController {
     private final GenerateService generateService;
     private final QuotaService quotaService;
     private final AnalyticsService analytics;
-    public GenerateController(GenerateService generateService, QuotaService quotaService, AnalyticsService analytics) {
+    private final VisionService visionService;
+    public GenerateController(GenerateService generateService, QuotaService quotaService, AnalyticsService analytics, VisionService visionService) {
         this.generateService = generateService;
         this.quotaService = quotaService;
         this.analytics = analytics;
+        this.visionService = visionService;
     }
 
     public static class CaptionReq { public String imageUrl; public Boolean ocr = true; }
 
     @PostMapping("/caption")
-    public ResponseEntity<ImageInsights> caption(@RequestBody CaptionReq req) {
-        ImageInsights insights = new ImageInsights();
-        insights.setLabels(Arrays.asList("coffee", "latte", "morning"));
-        insights.setOcrText(req.ocr != null && req.ocr ? "示例OCR文本" : null);
+    public ResponseEntity<ImageInsights> caption(@RequestBody CaptionReq req, HttpServletRequest http) {
+        String client = clientKey(http);
+        ImageInsights insights = visionService.analyze(req.imageUrl);
+        analytics.track(client, "image.analyzed", java.util.Map.of("labels", insights.getLabels() != null ? insights.getLabels().size() : 0));
         return ResponseEntity.ok(insights);
     }
 
