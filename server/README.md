@@ -20,9 +20,7 @@ Endpoints (stubs)
 - POST `/generate/rewrite` → echo rewrite
 - POST `/image/render` → mock render result
 - GET `/history` → mock list
-- POST `/favorites` → toggle
 - GET `/hot-topics` → mock hot topics
 - POST `/billing/orders`, GET `/billing/orders/{id}`, POST `/billing/callback/{channel}` → mock billing
 
 Note: This is a scaffold aligned with `docs/api/openapi.yaml`.
-
