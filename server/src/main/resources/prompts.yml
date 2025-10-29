@@ -1,0 +1,36 @@
+﻿prompts:
+  copy:
+    template: |-
+      你是一名资深的中文社交媒体文案创作者，请基于下述信息输出新的朋友圈文案：
+      图片地址：{{imageUrl}}
+      样式指令：{{styleInstruction}}
+      {{historySection}}
+      输出要求：
+      {{outputRequirements}}
+    historyHeader: |-
+      历史上下文（供参考）：
+    historyItem: |-
+      - 样式指令：{{instruction}}
+        文案：
+      {{outputs}}
+    historyEmpty: |-
+      暂无历史上下文，可结合图片内容与当前样式指令直接创作。
+    outputRequirements:
+      - 生成 3 条 40-120 字的中文文案，每条独立成段。
+      - 文案语气需贴合样式指令，适度使用 emoji。
+      - 不要描述模型或生成过程，也不要提及 AI。
+  image:
+    renderTemplate: |-
+      任务：将给定图片优化为适合发布到微信朋友圈的风格，不叠加任何文字。
+      要求：
+      1) 画面比例 {{ratio}}，输出分辨率 {{resolution}}，尽量保留主体构图。
+      2) 提升整体亮度、对比度与通透度，适度强化主体。
+      3) 色彩保持自然，可微调白平衡与饱和度，避免过度处理。
+      4) 轻微降噪并保留细理细节，确保画面干净舒适。
+      5) 不新增元素，不改变原始意义。
+      {{watermarkLine}}
+      输出：返回优化后的图片 URL（或 Base64）
+    watermarkInstruction: |-
+      在右下角添加透明度 20% 的极小号水印，避免遮挡主体
+
+

@@ -1,0 +1,368 @@
+openapi: 3.0.3
+info:
+  title: 每日朋友圈助手 API
+  version: 0.1.0
+  description: >-
+    核心接口：匿名/登录、图片解析、文案生成/重写、模板渲染、历史/收藏、热点梗、订单支付。
+servers:
+  - url: https://api.example.com
+paths:
+  /api/v1/auth/anonymous:
+    post:
+      summary: 创建匿名会话
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnonymousSession'
+
+  /api/v1/auth/login:
+    post:
+      summary: 手机号验证码登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/v1/profile:
+    get:
+      summary: 获取人设与受众画像
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Persona'
+    put:
+      summary: 更新人设与受众画像
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Persona'
+      responses:
+        '200': { description: OK }
+
+  /api/v1/generate/caption:
+    post:
+      summary: 上传图片或URL，返回图像理解
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imageUrl: { type: string }
+                ocr: { type: boolean, default: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageInsights'
+
+  /api/v1/generate/copy:
+    post:
+      summary: 生成文案候选
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopyRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopyCandidates'
+
+  /api/v1/generate/rewrite:
+    post:
+      summary: 根据指令微调文案
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: string }
+                instruction: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text: { type: string }
+
+  /api/v1/image/render:
+    post:
+      summary: 按模板渲染成图/九宫格
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenderRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderResult'
+
+  /api/v1/history:
+    get:
+      summary: 获取历史生成记录
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Generation'
+                  total: { type: integer }
+
+  /api/v1/favorites:
+    post:
+      summary: 收藏/取消收藏
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                generationId: { type: string }
+                favorite: { type: boolean }
+      responses:
+        '200': { description: OK }
+
+  /api/v1/hot-topics:
+    get:
+      summary: 获取热点梗词
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HotTopic'
+
+  /api/v1/billing/orders:
+    post:
+      summary: 创建订单
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+  /api/v1/billing/orders/{id}:
+    get:
+      summary: 查询订单状态
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+  /api/v1/billing/callback/{channel}:
+    post:
+      summary: 支付回调
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          schema:
+            type: string
+            enum: [wechat, alipay]
+      responses:
+        '200': { description: OK }
+
+components:
+  schemas:
+    AnonymousSession:
+      type: object
+      properties:
+        token: { type: string }
+        expiresAt: { type: string, format: date-time }
+
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        phone: { type: string }
+        planId: { type: string, nullable: true }
+        remainingQuota: { type: integer }
+
+    Persona:
+      type: object
+      properties:
+        role: { type: string }
+        tone: { type: string }
+        brandKeywords:
+          type: array
+          items: { type: string }
+        bannedWords:
+          type: array
+          items: { type: string }
+        audienceTags:
+          type: array
+          items: { type: string }
+
+    ImageInsights:
+      type: object
+      properties:
+        labels:
+          type: array
+          items: { type: string }
+        ocrText: { type: string }
+
+    CopyRequest:
+      type: object
+      properties:
+        imageTags:
+          type: array
+          items: { type: string }
+        ocrText: { type: string }
+        persona: { $ref: '#/components/schemas/Persona' }
+        audienceTags:
+          type: array
+          items: { type: string }
+        hotTopicsOn: { type: boolean, default: true }
+        stylePreset:
+          type: string
+          enum: [professional, lively, healing, humorous, cold]
+
+    CopyCandidates:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              text: { type: string }
+
+    RenderRequest:
+      type: object
+      properties:
+        templateId: { type: string }
+        primaryColor: { type: string }
+        fontFamily: { type: string }
+        fontSize: { type: number }
+        lineHeight: { type: number }
+        margin: { type: number }
+        watermarkOn: { type: boolean }
+        stickerSet:
+          type: array
+          items: { type: string }
+        ratio:
+          type: string
+          enum: ['1:1','4:5','16:9']
+        resolution: { type: string, example: '1080x1080' }
+        grid:
+          type: object
+          properties:
+            enabled: { type: boolean }
+            size: { type: string, enum: ['3x3'] }
+        imageUrl: { type: string }
+        copyText: { type: string }
+
+    RenderResult:
+      type: object
+      properties:
+        images:
+          type: array
+          items: { type: string, description: '渲染后图片URL' }
+
+    Generation:
+      type: object
+      properties:
+        id: { type: string }
+        imageId: { type: string }
+        selectedCopy: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    HotTopic:
+      type: object
+      properties:
+        version: { type: string }
+        date: { type: string, format: date }
+        keywords:
+          type: array
+          items: { type: string }
+
+    CreateOrderRequest:
+      type: object
+      properties:
+        channel: { type: string, enum: [wechat, alipay] }
+        planId: { type: string }
+
+    Order:
+      type: object
+      properties:
+        id: { type: string }
+        channel: { type: string }
+        planId: { type: string }
+        amount: { type: number }
+        currency: { type: string, default: CNY }
+        status: { type: string, enum: [pending, paid, failed] }
+        createdAt: { type: string, format: date-time }
+        paidAt: { type: string, format: date-time, nullable: true }
+

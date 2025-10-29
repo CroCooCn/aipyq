@@ -1,0 +1,48 @@
+﻿server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+spring:
+  config:
+    import: optional:classpath:prompts.yml
+  application:
+    name: friend-app-server
+  datasource:
+    url: jdbc:mysql://localhost:3306/aipyq?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
+  global-config:
+    db-config:
+      id-type: auto
+
+ai:
+  provider: volc
+  volc-base-url: https://ark.cn-beijing.volces.com/api/v3
+  volc-api-key: c24dbb61-96a4-40e2-ae4a-3eaf693caef6
+  volc-text-endpoint: /chat/completions
+  volc-text-model: doubao-1-5-pro-32k-250115
+  volc-vision-endpoint: /chat/completions
+  volc-vision-model: doubao-1-5-vision-pro-32k-250115
+  volc-image-edit-endpoint: /images/generations
+  volc-image-edit-model: ep-20250912155117-7d7cw
+
+oss:
+  endpoint: oss-cn-beijing.aliyuncs.com
+  accessKeyId: ${OSS_ACCESS_KEY_ID:}
+  accessKeySecret: ${OSS_ACCESS_KEY_SECRET:}
+  bucket: liyujie-bucket1
+  publicDomain: ${OSS_PUBLIC_DOMAIN:}
+  signedUrlExpireSeconds: ${OSS_SIGNED_URL_EXPIRE_SECONDS:604800}
+
+

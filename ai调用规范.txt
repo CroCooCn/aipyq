@@ -1,0 +1,410 @@
+图片理解对话：（例如1.5vision-pro模型）
+请求：
+curl https://ark.cn-beijing.volces.com/api/v3/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ARK_API_KEY" \
+  -d $'{
+    "model": "doubao-1-5-vision-pro-32k-250115",
+    "messages": [
+        {
+            "content": [
+                {
+                    "image_url": {
+                        "url": "https://ark-project.tos-cn-beijing.volces.com/images/view.jpeg"
+                    },
+                    "type": "image_url"
+                },
+                {
+                    "text": "图片主要讲了什么?",
+                    "type": "text"
+                }
+            ],
+            "role": "user"
+        }
+    ]
+}'
+回复：
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "画面中呈现了一幅宁静的户外景象。一个人乘坐在橙黄色的皮划艇上，手持船桨，正在平静的水面划行。水面如镜，倒映着周围景致。远处是茂密的森林，森林后方矗立着巍峨的雪山，山体覆盖着白雪。天空呈浅蓝色，飘浮着一些云朵。整体氛围静谧而美好，展现出自然的纯净与壮阔。 ",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1742636149,
+  "id": "0217426361458116592a076493be583bc5e33f80ac2dcf1efc31b",
+  "model": "doubao-1-5-vision-pro-32k-250115",
+  "service_tier": "default",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 85,
+    "prompt_tokens": 521,
+    "total_tokens": 606,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
+
+
+默认对话：（例如1.5pro）
+请求：
+curl https://ark.cn-beijing.volces.com/api/v3/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ARK_API_KEY" \
+  -d '{
+    "model": "doubao-1-5-pro-32k-250115",
+    "messages": [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant."
+        },
+        {
+            "role": "user",
+            "content": "Hello!"
+        }
+    ]
+  }'
+回复：
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "Hello! How can I help you today?",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1742631811,
+  "id": "0217426318107460cfa43dc3f3683b1de1c09624ff49085a456ac",
+  "model": "doubao-1-5-pro-32k-250115",
+  "service_tier": "default",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 9,
+    "prompt_tokens": 19,
+    "total_tokens": 28,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
+
+流式输出对话（例如1.5pro）：
+请求：
+curl https://ark.cn-beijing.volces.com/api/v3/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ARK_API_KEY" \
+  -d $'{
+    "messages": [
+        {
+            "content": "You are a helpful assistant.",
+            "role": "system"
+        },
+        {
+            "content": "hello",
+            "role": "user"
+        }
+    ],
+    "model": "doubao-1-5-pro-32k-250115",
+    "stream": true
+}'
+回复：
+{"choices":[{"delta":{"content":"Hello","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":"!","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":" How","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":" can","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":" I","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":" help","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":" you","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":" today","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":"?","role":"assistant"},"index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+{"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":"stop","index":0}],"created":1742632436,"id":"021742632435712396f12d018b5d576a7a55349c2eba0815061fc","model":"doubao-1-5-pro-32k-250115","service_tier":"default","object":"chat.completion.chunk","usage":null}
+
+[DONE]
+
+prefill response对话（例如1.5pro）：
+请求：
+curl https://ark.cn-beijing.volces.com/api/v3/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ARK_API_KEY" \
+  -d $'{
+    "messages": [
+        {
+            "content": "你是一个计算器，请计算： 1 + 1",
+            "role": "user"
+        },
+        {
+            "content": "=",
+            "role": "assistant"
+        }
+    ],
+    "model": "doubao-1-5-pro-32k-250115"
+}'
+回复：
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": " 2",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1742634165,
+  "id": "0217426341647344ee2a242cadeb3c7acc981f0bd805884bc65fc",
+  "model": "doubao-1-5-pro-32k-250115",
+  "service_tier": "default",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 21,
+    "total_tokens": 23,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
+
+关闭深度思考（例如1.5-pro）：
+请求：
+curl --location "https://ark.cn-beijing.volces.com/api/v3/chat/completions" \
+--header "Authorization: Bearer $ARK_API_KEY" \
+--header "Content-Type: application/json" \
+--data '{
+ "model": "doubao-seed-1.6-250615",
+     "messages": [
+         {
+             "role": "user",
+             "content": [
+                 {
+                     "type":"text",
+                     "text":"我要研究深度思考模型与非深度思考模型区别的课题，体现出我的专业性"
+                 }
+             ]
+         }
+     ],
+     "thinking":{
+         "type":"disabled"
+     }
+}'
+回复：
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "研究“深度思考模型与非深度思考模型的区别”是一个兼具理论深度与实践意义的课题，...",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1750342275,
+  "id": "0217503421709253ddc3c2b93f219d1c79fa57be98ff8fa5ef2ba",
+  "model": "doubao-seed-1-6-250615",
+  "service_tier": "default",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 3178,
+    "prompt_tokens": 54,
+    "total_tokens": 3232,
+    "prompt_tokens_details": { "cached_tokens": 0 },
+    "completion_tokens_details": { "reasoning_tokens": 0 }
+  }
+}
+
+
+图生图（例如：seedream模型）：
+请求：curl -X POST https://ark.cn-beijing.volces.com/api/v3/images/generations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ARK_API_KEY" \
+  -d '{
+    "model": "doubao-seedream-4-0-250828",
+    "prompt": "生成狗狗趴在草地上的近景画面",
+    "image": "https://ark-project.tos-cn-beijing.volces.com/doc_image/seedream4_imageToimage.png",
+    "size": "2K",
+    "sequential_image_generation": "disabled",
+    "stream": false,
+    "response_format": "url",
+    "watermark": true
+}'
+回复：
+{
+    "model": "doubao-seedream-4-0-250828",
+    "created": 1757323224,
+    "data": [
+        {
+            "url": "https://...",
+            "size": "1760x2368"
+        }
+    ],
+    "usage": {
+        "generated_images": 1,
+        "output_tokens": 16280,
+        "total_tokens": 16280
+    }
+}
+
+组图生组图（例如seedream）：
+请求：
+curl https://ark.cn-beijing.volces.com/api/v3/images/generations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ARK_API_KEY" \
+  -d '{
+    "model": "doubao-seedream-4-0-250828",
+    "prompt": "生成3张女孩和奶牛玩偶在游乐园开心地坐过山车的图片，涵盖早晨、中午、晚上",
+    "image": ["https://ark-project.tos-cn-beijing.volces.com/doc_image/seedream4_imagesToimages_1.png", "https://ark-project.tos-cn-beijing.volces.com/doc_image/seedream4_imagesToimages_2.png"],
+    "sequential_image_generation": "auto",
+    "sequential_image_generation_options": {
+        "max_images": 3
+    },
+    "size": "2K"
+}'
+回复：
+{
+  "model": "doubao-seedream-4-0-250828",
+  "created": 1757388756,
+  "data": [
+    {
+      "url": "https://...",
+      "size": "2720x1536"
+    },
+    {
+      "url": "https://...",
+      "size": "2720x1536"
+    },
+    {
+      "url": "https://...",
+      "size": "2720x1536"
+    }
+  ],
+  "usage": {
+    "generated_images": 3,
+    "output_tokens": 48960,
+    "total_tokens": 48960
+  }
+}
+
+文生图：（例如seedream模型）
+请求：
+curl -X POST https://ark.cn-beijing.volces.com/api/v3/images/generations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ARK_API_KEY" \
+  -d '{
+    "model": "doubao-seedream-4-0-250828",
+    "prompt": "星际穿越，黑洞，黑洞里冲出一辆快支离破碎的复古列车，抢视觉冲击力，电影大片，末日既视感，动感，对比色，oc渲染，光线追踪，动态模糊，景深，超现实主义，深蓝，画面通过细腻的丰富的色彩层次塑造主体与场景，质感真实，暗黑风背景的光影效果营造出氛围，整体兼具艺术幻想感，夸张的广角透视效果，耀光，反射，极致的光影，强引力，吞噬",
+    "size": "2K",
+    "sequential_image_generation": "disabled",
+    "stream": false,
+    "response_format": "url",
+    "watermark": true
+}'
+回复：
+{
+    "model": "doubao-seedream-4-0-250828",
+    "created": 1757321139,
+    "data": [
+        {
+            "url": "https://...",
+            "size": "3104x1312"
+        }
+    ],
+    "usage": {
+        "generated_images": 1,
+        "output_tokens": xxx,
+        "total_tokens": xxx
+    }
+}
+
+图片生成流式输出：
+请求：
+curl https://ark.cn-beijing.volces.com/api/v3/images/generations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ARK_API_KEY" \
+  -d '{
+    "model": "doubao-seedream-4-0-250828",
+    "prompt": "参考这个LOGO，做一套户外运动品牌视觉设计，品牌名称为GREEN，包括包装袋、帽子、纸盒、手环、挂绳等。绿色视觉主色调，趣味、简约现代风格",
+    "image": "https://ark-project.tos-cn-beijing.volces.com/doc_image/seedream4_imageToimages.png",
+    "sequential_image_generation": "auto",
+    "sequential_image_generation_options": {
+        "max_images": 3
+    },
+    "size": "2K",
+    "stream": true
+}'
+回复：
+event: image_generation.partial_succeeded
+data: {
+  "type": "image_generation.partial_succeeded",
+  "model": "doubao-seedream-4-0-250828",
+  "created": 1757396757,
+  "image_index": 0,
+  "url": "https://...",
+  "size": "2496x1664"
+}
+
+event: image_generation.partial_succeeded
+data: {
+  "type": "image_generation.partial_succeeded",
+  "model": "doubao-seedream-4-0-250828",
+  "created": 1757396785,
+  "image_index": 1,
+  "url": "https://...",
+  "size": "2496x1664"
+}
+
+event: image_generation.partial_succeeded
+data: {
+  "type": "image_generation.partial_succeeded",
+  "model": "doubao-seedream-4-0-250828",
+  "created": 1757396825,
+  "image_index": 2,
+  "url": "https://...",
+  "size": "2496x1664"
+}
+
+event: image_generation.completed
+data: {
+  "type": "image_generation.completed",
+  "model": "doubao-seedream-4-0-250828",
+  "created": 1757396825,
+  "usage": {
+    "generated_images": 3,
+    "output_tokens": 48672,
+    "total_tokens": 48672
+  }
+}
+
+data: [DONE]
+
