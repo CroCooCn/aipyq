@@ -108,3 +108,78 @@
 ```
 - 使用 PAT：`https://<YOUR_USER>:<TOKEN>@github.com/<YOUR_USER>/<YOUR_REPO>.git`
 - 使用 SSH：`git@github.com:<YOUR_USER>/<YOUR_REPO>.git`
+# 每日朋友圈助理 v1.0
+
+一套「图文生成 + 海报渲染」的一体化解决方案：用户上传图片或给出场景，服务会调用视觉模型理解内容、生成多条中文文案，并可套用模板直接渲染成图，支持复制、下载与后续分享。本次 v1.0 版本完成了后端 API、Web 前端、AI Provider 接入、配额与支付闭环的打通。
+
+## 功能亮点
+- 看图写文：视觉模型解读图片，结合人设与受众生成 3 条备选文案
+- AI 改写：支持一键润色成更口语、更营销或更生活化的表达
+- 图片渲染：调用图片模型直接排版出图，可调节字号、行距、水印等参数
+- 用户体系：提供游客/订阅双档配额与微信渠道的模拟支付闭环
+- 数据记录：提供历史与收藏入口（当前为占位实现，可扩展持久化）
+- 埋点分析：服务端输出关键事件日志，便于接入第三方统计
+
+## 代码结构
+- `server/`：Spring Boot 3.3 后端，包含 AI/支付/配额等业务逻辑
+- `web/`：Next.js 14 前端（App Router），覆盖上传、生成、历史等页面
+- `docs/`：需求文档、OpenAPI、提示词、Provider 对接指南
+
+## 技术栈
+- 后端：Java 17、Spring Boot 3.3、MyBatis-Plus、WebFlux WebClient
+- 前端：Next.js 14、React 18、Tailwind CSS（可选）
+- AI Provider：火山引擎 Ark Chat Completions 与 Images Generations（可切换 Mock）
+- 数据库：MySQL 8（示例连接字符串见配置）
+
+## 快速启动
+1. 启动后端  
+   - 安装 Java 17 与 Maven 3.9+  
+   - 在 `server/src/main/resources/application.yml` 或环境变量中填写配置  
+   - 运行 `mvn spring-boot:run -f server/pom.xml`  
+   - 后端默认监听 `http://localhost:8080/api/v1`
+2. 启动前端  
+   - 安装 Node.js 18+  
+   - 进入 `web/` 执行 `npm install && npm run dev`  
+   - 可选设置：`NEXT_PUBLIC_API_BASE=http://localhost:8080/api/v1`  
+   - 访问 `http://localhost:3000`
+
+## 核心配置
+- 数据库：  
+  - `spring.datasource.url`、`spring.datasource.username`、`spring.datasource.password`
+- 火山引擎：  
+  - `ai.provider` 取值 `volc` 或 `mock`  
+  - `ai.volc-api-key`、`ai.volc-*-model`、`ai.volc-*-endpoint`
+- 阿里云 OSS：  
+  - `oss.endpoint` 与 `oss.bucket` 使用默认值或按环境覆写  
+  - `OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`、`OSS_PUBLIC_DOMAIN`、`OSS_SIGNED_URL_EXPIRE_SECONDS`
+- 配额与订单：  
+  - `quota.*` 可调整免费额度、订阅策略  
+  - 微信模拟回调路径：`/api/v1/billing/callback/wechat`
+
+## 核心 API
+- 生成链路  
+  - `POST /api/v1/generate/caption`：图片理解（占位）  
+  - `POST /api/v1/generate/copy`：生成朋友圈文案  
+  - `POST /api/v1/generate/rewrite`：文案润色  
+  - `POST /api/v1/image/render`：AI 渲染海报
+- 账号与配额  
+  - `GET /api/v1/quota`：查询剩余额度  
+  - `POST /api/v1/billing/orders`：创建订单  
+  - `POST /api/v1/billing/callback/wechat`：模拟支付回调
+- 调试辅助  
+  - `GET /api/v1/debug/ai`：查看当前 AI Provider 状态
+
+## 版本日志
+- **v1.0 (2025-01-29)**  
+  - 完成 Web + Server 全链路打通  
+  - 接入火山引擎文案与图片模型  
+  - 加入配额管理与微信支付模拟  
+  - 提供 OSS 存储配置与签名下载能力
+
+## 贡献指南
+- 欢迎提交 Issue/PR，建议先在 Issue 中描述需求或问题
+- 代码提交请遵循项目现有的分层结构与命名规范
+- 提交前确保本地构建通过，并补充必要的单元测试/集成测试
+
+## 许可证
+许可证暂未确定，默认保留全部权利。如需使用请先联系作者。
